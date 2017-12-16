@@ -1,0 +1,36 @@
+server:
+  port: 0
+
+logging:
+  config: classpath:conf/log4j2.xml
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: root
+    initialSize: 5
+    maxActive: 10
+    minIdle: 5
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: SELECT 1
+    useUnfairLock: true
+    testOnBorrow: false
+    testOnReturn: false
+    testWhileIdle: true
+    filters: stat,wall,log4j
+    logSlowSql: true 
+
+mybatis:
+  mapperLocations: classpath*:mapper/**/*.xml
+  typeAliasesPackage: com.wangxin.api.model
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
