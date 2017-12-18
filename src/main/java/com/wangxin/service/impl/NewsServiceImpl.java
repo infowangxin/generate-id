@@ -30,7 +30,7 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public boolean addNews(News news) {
         if (news != null) {
-             news.setId("1");
+            // news.setId("1");
             news.setCreateTime(Calendar.getInstance().getTime());
             log.info("# {}", JSON.toJSONString(news));
             int flag = newsMapper.insert(news);
