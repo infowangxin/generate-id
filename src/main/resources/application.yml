@@ -47,3 +47,22 @@ pagehelper:
   supportMethodsArguments: true
   params: count=countSql
   
+# Prefix
+prefix: aquarius
+
+# Lock config
+lockType: redisLock
+# lockType=zookeeperLock
+# lockType=localLock
+lockScanPackages: com.nepxion.aquarius.lock
+
+# Cache config
+cacheType: redisCache
+cacheScanPackages: com.nepxion.aquarius.cache
+
+# Limit config
+limitType: redisLimit
+limitScanPackages: com.nepxion.aquarius.limit
+
+# Frequent log Print 
+frequentLogPrint: true
