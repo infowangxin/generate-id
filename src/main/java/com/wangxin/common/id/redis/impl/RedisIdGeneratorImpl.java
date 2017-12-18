@@ -15,11 +15,11 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -39,9 +39,11 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
     private static final String DECIMAL_FORMAT = "00000000";
     private static final int MAX_BATCH_COUNT = 1000;
 
+    // @Resource
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
     // @Autowired
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    // private RedisTemplate redisTemplate;
 
     @Value("${prefix}")
     private String prefix;
@@ -93,7 +95,8 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
 
         List<String> keys = new ArrayList<String>();
         keys.add(compositeKey);
-
+        // keys.add("10");
+        // List<Object> result =redisTemplate.execute(redisScript, keys, step);
         List<Object> result = redisTemplate.execute(redisScript, keys, step);
 
         Object value1 = result.get(0);
