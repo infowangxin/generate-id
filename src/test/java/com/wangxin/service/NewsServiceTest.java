@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.wangxin.Application;
@@ -18,10 +17,6 @@ import com.wangxin.model.News;
 @SpringBootTest(classes = Application.class)
 public class NewsServiceTest {
 
-    // @Resource
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
-
     @Autowired
     private NewsMapper newsMapper;
 
@@ -29,31 +24,11 @@ public class NewsServiceTest {
     RedisIdGenerator redisIdGenerator;
 
     @Test
-    public void getId() {
-        try {
-            String result = redisIdGenerator.nextUniqueId("idgenerater", "X-Y", 1, 8);// 从redis读取缓存的值
-            System.out.println(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void getValue() {
-        try {
-            String result = redisTemplate.opsForValue().get("a");// 从redis读取缓存的值
-            System.out.println(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
     public void addNews() {
         boolean flag = true;
         do {
             try {
-                String id = redisIdGenerator.nextUniqueId("idgenerater", "X-Y", 1, 8);
+                String id = redisIdGenerator.nextUniqueId("idgenerater");
                 System.out.println(id);
                 News news = new News();
                 news.setId(id);

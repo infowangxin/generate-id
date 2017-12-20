@@ -26,15 +26,17 @@ import com.wangxin.common.id.redis.RedisIdGenerator;
 public class RedisIdGeneratorImpl implements RedisIdGenerator {
     private static final Logger log = LoggerFactory.getLogger(RedisIdGeneratorImpl.class);
 
-    private static final String DATE_FORMAT = "yyyyMMddHHmmssSSS";
-    private static final String DECIMAL_FORMAT = "00000000";
-    private static final int MAX_BATCH_COUNT = 1000;
+    private static final String DATE_FORMAT = "yyyyMMddHHmmssSSS";// id前缀
+    private static final String DECIMAL_FORMAT = "00000000";// 数值格式
+    private static final int MAX_BATCH_COUNT = 1000;// 批量获取ID最大个数
+    private static final int step = 1;// 递增值
+    private static final int length = 8;// 长度
 
     @Value("${prefix}")
-    private String prefix;
+    private String prefix;// redis key固定前缀，一般用于区分应用
 
-    @Value("${frequentLogPrint}")
-    private Boolean frequentLogPrint;
+    @Value("${frequentLogPrint:false}")
+    private Boolean frequentLogPrint;// 是否开启频率的日志打印,默认不开启
 
     private static RedisScript<List<Object>> redisScript;
     private static SimpleDateFormat dateFormat;
@@ -59,8 +61,7 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
     }
 
     /** 
-     * @Description 封装Redis Script
-     * @author 王鑫
+     * 封装Redis Script
      * @return  Redis Script
      */
     private String buildLuaScript() {
@@ -75,8 +76,7 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
     }
 
     /** 
-     * @Description 数值格式化成指定长度字符串，不够长度前面补“0”
-     * @author 王鑫
+     * 数值格式化成指定长度字符串，不够长度前面补“0”
      * @param key 数值
      * @param length 长度
      * @return  数值字符串
@@ -104,6 +104,34 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
 
     @Override
     public String nextUniqueId(String compositeKey, int step, int length) {
+        if (StringUtils.isEmpty(compositeKey)) {
+            throw new RuntimeException("Composite key is null or empty");
+        }
+
+        List<String> keys = new ArrayList<String>();
+        keys.add(compositeKey);
+
+        List<Object> result = redisTemplate.execute(redisScript, keys, step);
+
+        Object value1 = result.get(0);
+        Object value2 = result.get(1);
+        Object value3 = result.get(2);
+
+        Date date = new Date(Long.parseLong(String.valueOf(value1)) * 1000 + Long.parseLong(String.valueOf(value2)) / 1000);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(dateFormat.format(date));
+        builder.append(formatString((long) value3, length));
+
+        String nextUniqueId = builder.toString();
+        if (frequentLogPrint) {
+            log.info("Next unique id is {} for key={}", nextUniqueId, compositeKey);
+        }
+        return nextUniqueId;
+    }
+
+    @Override
+    public String nextUniqueId(String compositeKey) {
         if (StringUtils.isEmpty(compositeKey)) {
             throw new RuntimeException("Composite key is null or empty");
         }
