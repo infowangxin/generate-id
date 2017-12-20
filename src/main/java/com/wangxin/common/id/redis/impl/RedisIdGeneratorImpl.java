@@ -1,15 +1,7 @@
 package com.wangxin.common.id.redis.impl;
 
-/**
- * <p>Title: Nepxion Aquarius</p>
- * <p>Description: Nepxion Aquarius</p>
- * <p>Copyright: Copyright (c) 2017</p>
- * <p>Company: Nepxion</p>
- * @author Haojun Ren
- * @email 1394997@qq.com
- * @version 1.0
- */
-
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,26 +16,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import com.wangxin.common.id.redis.RedisIdGenerator;
-import com.wangxin.common.util.DateUtil;
-import com.wangxin.common.util.KeyUtil;
-import com.wangxin.common.util.StringUtil;
 
-@Component("redisIdGeneratorImpl")
+@Component
 public class RedisIdGeneratorImpl implements RedisIdGenerator {
-    private static final Logger LOG = LoggerFactory.getLogger(RedisIdGeneratorImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RedisIdGeneratorImpl.class);
 
     private static final String DATE_FORMAT = "yyyyMMddHHmmssSSS";
     private static final String DECIMAL_FORMAT = "00000000";
     private static final int MAX_BATCH_COUNT = 1000;
-
-    // @Resource
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
-    // @Autowired
-    // private RedisTemplate redisTemplate;
 
     @Value("${prefix}")
     private String prefix;
@@ -51,15 +36,33 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
     @Value("${frequentLogPrint}")
     private Boolean frequentLogPrint;
 
-    private RedisScript<List<Object>> redisScript;
+    private static RedisScript<List<Object>> redisScript;
+    private static SimpleDateFormat dateFormat;
+    private static DecimalFormat decimalFormat;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @PostConstruct
     public void initialize() {
-        String luaScript = buildLuaScript();
-        redisScript = new DefaultRedisScript(luaScript, List.class);
+        // 设定serializer
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        // 组装redis script
+        redisScript = new DefaultRedisScript(buildLuaScript(), List.class);
+
+        // format object
+        dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        decimalFormat = new DecimalFormat(DECIMAL_FORMAT);
     }
 
+    /** 
+     * @Description 封装Redis Script
+     * @author 王鑫
+     * @return  Redis Script
+     */
     private String buildLuaScript() {
         StringBuilder lua = new StringBuilder();
         lua.append("local incrKey = KEYS[1];");
@@ -68,8 +71,23 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
         lua.append("\ncount = tonumber(redis.call('incrby', incrKey, step));");
         lua.append("\nlocal now = redis.call('time');");
         lua.append("\nreturn {now[1], now[2], count}");
-
         return lua.toString();
+    }
+
+    /** 
+     * @Description 数值格式化成指定长度字符串，不够长度前面补“0”
+     * @author 王鑫
+     * @param key 数值
+     * @param length 长度
+     * @return  数值字符串
+     */
+    public static String formatString(long key, int length) {
+        String value = String.valueOf(key);
+        if (value.length() < length) {
+            return decimalFormat.format(key);
+        } else {
+            return value.substring(value.length() - length, value.length());
+        }
     }
 
     @Override
@@ -77,13 +95,10 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
         if (StringUtils.isEmpty(name)) {
             throw new RuntimeException("Name is null or empty");
         }
-
         if (StringUtils.isEmpty(key)) {
             throw new RuntimeException("Key is null or empty");
         }
-
-        String compositeKey = KeyUtil.getCompositeKey(prefix, name, key);
-
+        String compositeKey = prefix + "_" + name + "_" + key;
         return nextUniqueId(compositeKey, step, length);
     }
 
@@ -95,8 +110,7 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
 
         List<String> keys = new ArrayList<String>();
         keys.add(compositeKey);
-        // keys.add("10");
-        // List<Object> result =redisTemplate.execute(redisScript, keys, step);
+
         List<Object> result = redisTemplate.execute(redisScript, keys, step);
 
         Object value1 = result.get(0);
@@ -106,15 +120,13 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
         Date date = new Date(Long.parseLong(String.valueOf(value1)) * 1000 + Long.parseLong(String.valueOf(value2)) / 1000);
 
         StringBuilder builder = new StringBuilder();
-        builder.append(DateUtil.formatDate(date, DATE_FORMAT));
-        builder.append(StringUtil.formatString((long) value3, length, DECIMAL_FORMAT));
+        builder.append(dateFormat.format(date));
+        builder.append(formatString((long) value3, length));
 
         String nextUniqueId = builder.toString();
-
         if (frequentLogPrint) {
-            LOG.info("Next unique id is {} for key={}", nextUniqueId, compositeKey);
+            log.info("Next unique id is {} for key={}", nextUniqueId, compositeKey);
         }
-
         return nextUniqueId;
     }
 
@@ -123,12 +135,10 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
         if (count <= 0 || count > MAX_BATCH_COUNT) {
             throw new RuntimeException(String.format("Count can't be greater than %d or less than 0", MAX_BATCH_COUNT));
         }
-
         String[] nextUniqueIds = new String[count];
         for (int i = 0; i < count; i++) {
             nextUniqueIds[i] = nextUniqueId(name, key, step, length);
         }
-
         return nextUniqueIds;
     }
 
@@ -137,12 +147,10 @@ public class RedisIdGeneratorImpl implements RedisIdGenerator {
         if (count <= 0 || count > MAX_BATCH_COUNT) {
             throw new RuntimeException(String.format("Count can't be greater than %d or less than 0", MAX_BATCH_COUNT));
         }
-
         String[] nextUniqueIds = new String[count];
         for (int i = 0; i < count; i++) {
             nextUniqueIds[i] = nextUniqueId(compositeKey, step, length);
         }
-
         return nextUniqueIds;
     }
 }
