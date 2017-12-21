@@ -1,4 +1,4 @@
-package com.wangxin.service;
+package com.wangxin.common.id;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +11,7 @@ import com.wangxin.common.id.redis.RedisIdGenerator;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = Application.class)
-public class GetIdTest {
+public class RedisIdGeneratorTest {
 
     @Autowired
     RedisIdGenerator redisIdGenerator;
