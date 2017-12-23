@@ -1,7 +1,7 @@
 package com.wangxin.common.id.redis;
 
 /** 
- * @Description 获取全局唯一ID：</br>
+ * @Description 利用redis获取全局唯一ID：</br>
  * ID规则：</br>
  * <strong>1.</strong> ID的前半部分为yyyyMMddHHmmssSSS格式的17位数字</br>
  * <strong>2.</strong> ID的后半部分为由length(最大为8位，如果length > 8，则取8)决定，取值Redis对应Value，如果小于length所对应的数位，如果不足该数位，前面补足0

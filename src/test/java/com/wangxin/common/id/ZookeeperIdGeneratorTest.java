@@ -18,11 +18,15 @@ public class ZookeeperIdGeneratorTest {
 
     @Test
     public void getId() {
-        try {
-            System.err.println(zookeeperIdGenerator.nextSequenceId("T_NEWS", "X-Y"));// 从redis读取缓存的值
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        boolean flag = true;
+        do {
+            try {
+                System.err.println(zookeeperIdGenerator.nextSequenceId("T_NEWS"));// 从redis读取缓存的值
+            } catch (Exception e) {
+                e.printStackTrace();
+                flag = false;
+            }
+        } while (flag);
     }
 
 }

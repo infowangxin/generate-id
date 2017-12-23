@@ -1,4 +1,4 @@
-package com.wangxin.common.id.zk.other;
+package com.wangxin.common.id.zk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,37 +50,31 @@ public class CuratorHandler {
     // 永远重试
     public static RetryPolicy createRetryForever(int retryIntervalMs) {
         RetryPolicy retryPolicy = new RetryForever(retryIntervalMs);
-
         return retryPolicy;
     }
 
     // 一直重试，直到达到规定的时间
     public static RetryPolicy createRetryUntilElapsed(int maxElapsedTimeMs, int sleepMsBetweenRetries) {
         RetryPolicy retryPolicy = new RetryUntilElapsed(maxElapsedTimeMs, sleepMsBetweenRetries);
-
         return retryPolicy;
     }
 
     // 创建ZooKeeper客户端实例
     public static CuratorFramework createCurator(String connectString, int sessionTimeoutMs, int connectionTimeoutMs, RetryPolicy retryPolicy) {
         LOG.info("Start to initialize Curator..");
-
         CuratorFramework curator = CuratorFrameworkFactory.newClient(connectString, sessionTimeoutMs, connectionTimeoutMs, retryPolicy);
-
         return curator;
     }
 
     // 启动ZooKeeper客户端
     public static void startCurator(CuratorFramework curator) {
         LOG.info("Start Curator...");
-
         curator.start();
     }
 
     // 启动ZooKeeper客户端，直到第一次连接成功
     public static void startAndBlockCurator(CuratorFramework curator) throws InterruptedException {
         LOG.info("start and block Curator...");
-
         curator.start();
         curator.blockUntilConnected();
     }
@@ -88,7 +82,6 @@ public class CuratorHandler {
     // 启动ZooKeeper客户端，直到第一次连接成功，为每一次连接配置超时
     public static void startAndBlockCurator(CuratorFramework curator, int maxWaitTime, TimeUnit units) throws InterruptedException {
         LOG.info("start and block Curator...");
-
         curator.start();
         curator.blockUntilConnected(maxWaitTime, units);
     }
@@ -96,7 +89,6 @@ public class CuratorHandler {
     // 关闭ZooKeeper客户端连接
     public static void closeCurator(CuratorFramework curator) {
         LOG.info("Start to close Curator...");
-
         curator.close();
     }
 
@@ -120,35 +112,30 @@ public class CuratorHandler {
         }
 
         Stat stat = builder.forPath(path);
-
         return stat;
     }
 
     // 创建路径
     public static void createPath(CuratorFramework curator, String path) throws Exception {
         PathUtils.validatePath(path);
-
         curator.create().creatingParentsIfNeeded().forPath(path, null);
     }
 
     // 创建路径，并写入数据
     public static void createPath(CuratorFramework curator, String path, byte[] data) throws Exception {
         PathUtils.validatePath(path);
-
         curator.create().creatingParentsIfNeeded().forPath(path, data);
     }
 
     // 创建路径
     public static void createPath(CuratorFramework curator, String path, CreateMode mode) throws Exception {
         PathUtils.validatePath(path);
-
         curator.create().creatingParentsIfNeeded().withMode(mode).forPath(path, null);
     }
 
     // 创建路径，并写入数据
     public static void createPath(CuratorFramework curator, String path, byte[] data, CreateMode mode) throws Exception {
         PathUtils.validatePath(path);
-
         curator.create().creatingParentsIfNeeded().withMode(mode).forPath(path, data);
     }
 
@@ -162,7 +149,6 @@ public class CuratorHandler {
     // 获取子节点名称列表
     public static List<String> getChildNameList(CuratorFramework curator, String path) throws Exception {
         PathUtils.validatePath(path);
-
         return curator.getChildren().forPath(path);
     }
 
@@ -175,7 +161,6 @@ public class CuratorHandler {
             String childPath = path + "/" + childName;
             childPathList.add(childPath);
         }
-
         return childPathList;
     }
 
