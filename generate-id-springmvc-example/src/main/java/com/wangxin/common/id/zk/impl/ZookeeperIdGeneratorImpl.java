@@ -1,30 +1,31 @@
 package com.wangxin.common.id.zk.impl;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.wangxin.common.id.zk.CuratorHandler;
 import com.wangxin.common.id.zk.ZookeeperIdGenerator;
 
-//@Component
+@Component
 public class ZookeeperIdGeneratorImpl implements ZookeeperIdGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperIdGeneratorImpl.class);
 
     private static final int MAX_BATCH_COUNT = 1000;
 
-//    @Autowired
+    @Resource
     private CuratorFramework curatorFramework;
 
-//    @Value("${prefix}")
+    @Value("${prefix}")
     private String prefix;// redis key固定前缀，一般用于区分应用
 
-//    @Value("${frequentLogPrint:false}")
+    @Value("${frequentLogPrint:false}")
     private Boolean frequentLogPrint;// 是否开启频率的日志打印,默认不开启
 
     @Override

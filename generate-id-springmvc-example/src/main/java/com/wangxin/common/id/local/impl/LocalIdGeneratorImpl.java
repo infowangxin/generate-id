@@ -13,7 +13,7 @@ import com.wangxin.common.id.local.LocalIdGenerator;
 
 @Component
 public class LocalIdGeneratorImpl implements LocalIdGenerator {
-    private static final Logger LOG = LoggerFactory.getLogger(LocalIdGeneratorImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocalIdGeneratorImpl.class);
 
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS";
     private static final long DEFAULT_START_TIMESTAMP = 1483200000000L; // 2017-01-01 00:00:00:000
@@ -59,7 +59,7 @@ public class LocalIdGeneratorImpl implements LocalIdGenerator {
     public String nextUniqueId(long startTimestamp, long dataCenterId, long machineId) {
         String nextUniqueId = getIdGenerator(startTimestamp, dataCenterId, machineId).nextId();
         if (frequentLogPrint) {
-            LOG.info("Next unique id is {} for startTimestamp={}, dataCenterId={}, machineId={}", nextUniqueId, startTimestamp, dataCenterId, machineId);
+            logger.info("Next unique id is {} for startTimestamp={}, dataCenterId={}, machineId={}", nextUniqueId, startTimestamp, dataCenterId, machineId);
         }
         return nextUniqueId;
     }
@@ -78,7 +78,7 @@ public class LocalIdGeneratorImpl implements LocalIdGenerator {
     public String[] nextUniqueIds(long startTimestamp, long dataCenterId, long machineId, int count) {
         String[] nextUniqueIds = getIdGenerator(startTimestamp, dataCenterId, machineId).nextIds(count);
         if (frequentLogPrint) {
-            LOG.info("Next unique ids is {} for startTimestamp={}, dataCenterId={}, machineId={}, count={}", convert(nextUniqueIds), startTimestamp, dataCenterId, machineId, count);
+            logger.info("Next unique ids is {} for startTimestamp={}, dataCenterId={}, machineId={}, count={}", convert(nextUniqueIds), startTimestamp, dataCenterId, machineId, count);
         }
         return nextUniqueIds;
     }
